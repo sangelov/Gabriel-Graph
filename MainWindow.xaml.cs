@@ -19,12 +19,19 @@ namespace Gabriel_Graph
 		private const int triangleTickness = 1;
 		private const int triangleZIndex = 2;
 		private static readonly Color triangleStrokeColor = Colors.Black;
-		
+
 		private const int circleZIndex = 1;
 		private const int circleStrokeTickness = 3;
 		private static readonly Color circleStrokeColor = Colors.Black;
 
+		private const float gabrielVertexRadius = 2;
+		private const int gabrielVertexTickness = 3;
+		private static readonly Color gabrielVertexColor = Colors.Red;
+
+		private List<Vertex> points;
 		private List<Triad> triads;
+		private HashSet<Vertex> gabrielVertices;
+
 		private Dictionary<Polygon, Triad> triangles;
 		private Dictionary<Polygon, Path> circles;
 
@@ -37,7 +44,7 @@ namespace Gabriel_Graph
 		private void GenerateDelaunayTriangulation()
 		{
 			//get random points
-			List<Vertex> points = Input.Points;
+			this.points = Input.Points;
 			Triangulator angulator = new Triangulator();
 			this.triads = angulator.Triangulation(points, true);
 			DrawDelaunayTriangulation(points, triads);
@@ -54,6 +61,66 @@ namespace Gabriel_Graph
 				Polygon polygon = CreateTriangle(points, triangle);
 				this.triangles[polygon] = triangle;
 				Plane.Children.Add(polygon);
+			}
+		}
+
+		private void DrawGabrielGraphVertices()
+		{
+			foreach (var vertex in gabrielVertices)
+			{
+				EllipseGeometry geometry = new EllipseGeometry();
+				geometry.Center = new Point(vertex.X, vertex.Y);
+				geometry.RadiusX = geometry.RadiusY = gabrielVertexRadius;
+				geometry.Freeze();
+				Path path = new Path();
+				path.StrokeThickness = gabrielVertexTickness;
+				path.Stroke = new SolidColorBrush(gabrielVertexColor);
+				path.Data = geometry;
+				this.Plane.Children.Add(path);
+			}
+		}
+
+		private void GetGabrielVertices()
+		{
+			this.gabrielVertices = new HashSet<Vertex>();
+			foreach (var triad in this.triads)
+			{
+				Triad neigbour;
+				if (triad.Ab > -1 && triad.Ab < triads.Count)
+				{
+					neigbour = this.triads[triad.Ab];
+					if (LinesIntersect(new Vertex(triad.CircumcircleX, triad.CircumcircleY),
+						new Vertex(neigbour.CircumcircleX, neigbour.CircumcircleY),
+						this.points[triad.A], this.points[triad.B]))
+					{
+						this.gabrielVertices.Add(this.points[triad.A]);
+						this.gabrielVertices.Add(this.points[triad.B]);
+					}
+				}
+				if (triad.Ac > -1 && triad.Ac < triads.Count)
+				{
+					neigbour = this.triads[triad.Ac];
+					if (LinesIntersect(new Vertex(triad.CircumcircleX, triad.CircumcircleY),
+						new Vertex(neigbour.CircumcircleX, neigbour.CircumcircleY),
+						this.points[triad.A], this.points[triad.C]))
+					{
+						{
+							this.gabrielVertices.Add(this.points[triad.A]);
+							this.gabrielVertices.Add(this.points[triad.C]);
+						}
+					}
+				}
+				if (triad.Bc > -1 && triad.Bc < triads.Count)
+				{
+					neigbour = this.triads[triad.Bc];
+					if (LinesIntersect(new Vertex(triad.CircumcircleX, triad.CircumcircleY),
+						new Vertex(neigbour.CircumcircleX, neigbour.CircumcircleY),
+						this.points[triad.B], this.points[triad.C]))
+					{
+						this.gabrielVertices.Add(this.points[triad.B]);
+						this.gabrielVertices.Add(this.points[triad.C]);
+					}
+				}
 			}
 		}
 
@@ -104,7 +171,7 @@ namespace Gabriel_Graph
 				polygon.MouseLeave -= OnLeave;
 			}
 		}
-  
+
 		private void OnLeave(object sender, MouseEventArgs e)
 		{
 			Polygon polygon = sender as Polygon;
@@ -159,6 +226,35 @@ namespace Gabriel_Graph
 					ClearTriangles();
 				}
 			}
+		}
+
+		private void BuildGabrielGraphClick(object sender, RoutedEventArgs e)
+		{
+			GetGabrielVertices();
+			DrawGabrielGraphVertices();
+		}
+
+		private bool LinesIntersect(Vertex l1p1, Vertex l1p2, Vertex l2p1, Vertex l2p2)
+		{
+			float q = (l1p1.Y - l2p1.Y) * (l2p2.X - l2p1.X) - (l1p1.X - l2p1.X) * (l2p2.Y - l2p1.Y);
+			float d = (l1p2.X - l1p1.X) * (l2p2.Y - l2p1.Y) - (l1p2.Y - l1p1.Y) * (l2p2.X - l2p1.X);
+
+			if (d == 0)
+			{
+				return false;
+			}
+
+			float r = q / d;
+
+			q = (l1p1.Y - l2p1.Y) * (l1p2.X - l1p1.X) - (l1p1.X - l2p1.X) * (l1p2.Y - l1p1.Y);
+			float s = q / d;
+
+			if (r < 0 || r > 1 || s < 0 || s > 1)
+			{
+				return false;
+			}
+
+			return true;
 		}
 	}
 }
