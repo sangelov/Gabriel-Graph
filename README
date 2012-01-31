@@ -1,0 +1,6 @@
+Drawing the Gabriel_graph for set of points
+
+http://en.wikipedia.org/wiki/Gabriel_graph
+http://en.wikipedia.org/wiki/Delaunay_triangulation
+
+the Delaunay triangulation algorithm is taken from http://www.s-hull.org/
