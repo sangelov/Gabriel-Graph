@@ -19,6 +19,9 @@ namespace Gabriel_Graph
 		private const int CircleStrokeTickness = 3;
 		private static readonly Color circleStrokeColor = Colors.Black;
 
+		private const int GabrielEdgeTickness = 2;
+		private static readonly Color gabrielEdgeColor = Colors.Red;
+
 		private List<Vertex> points;
 		private List<Triad> triads;
 
@@ -27,10 +30,13 @@ namespace Gabriel_Graph
 		private Dictionary<Polygon, Path> circles;
 
 		private HashSet<Vertex> gabrielVertices;
+		private HashSet<DelaunayEdge> delaunayEdges;
 
 		private const double GabrielVertexRadius = 3;
 		private const double GabrielVertexTickness = 2;
 		private static readonly Color gabrielVertexColor = Colors.Red;
+		private GabrielGraph gabrielGraph;
+		private HashSet<DelaunayEdge> gabrielEdges;
 
 		private DelaunayTriangulation()
 		{
@@ -63,7 +69,6 @@ namespace Gabriel_Graph
 				{
 					yield return triadsDict[triad];
 				}
-
 			}
 		}
 
@@ -99,54 +104,57 @@ namespace Gabriel_Graph
 			return circles[polygon];
 		}
 
-		public IEnumerable<Vertex> GetGabrielVertices()
+		public GabrielGraph BuildGabrielGraph()
 		{
-			if (this.gabrielVertices == null)
+			if (gabrielGraph == null)
 			{
-				this.gabrielVertices = new HashSet<Vertex>();
+				BuildGabrielGraph1();
+				gabrielGraph = new GabrielGraph()
+				{
+					Vertices = this.gabrielVertices,
+					Edges = this.gabrielEdges
+				};
+			}
+			return gabrielGraph;
+		}
+
+		public IEnumerable<DelaunayEdge> GetDelaunayEdges()
+		{
+			if (this.delaunayEdges == null)
+			{
+				this.delaunayEdges = new HashSet<DelaunayEdge>();
+				int i = 0;
 				foreach (var triad in this.triads)
 				{
-					Triad neigbour;
-					if (triad.Ab > -1 && triad.Ab < triads.Count)
+					this.delaunayEdges.Add(new DelaunayEdge(this.triads, this.points, triad.A, triad.B, i, triad.Ab));
+					this.delaunayEdges.Add(new DelaunayEdge(this.triads, this.points, triad.A, triad.C, i, triad.Ac));
+					this.delaunayEdges.Add(new DelaunayEdge(this.triads, this.points, triad.B, triad.C, i, triad.Bc));
+					i++;
+				}
+			}
+			return this.delaunayEdges;
+		}
+
+		private void BuildGabrielGraph1()
+		{
+			if (this.gabrielVertices == null && this.gabrielEdges == null)
+			{
+				this.gabrielVertices = new HashSet<Vertex>();
+				this.gabrielEdges = new HashSet<DelaunayEdge>();
+
+				foreach (var edge in this.GetDelaunayEdges())
+				{
+					if (edge.Neighbour2 != null)
 					{
-						neigbour = this.triads[triad.Ab];
-						if (LinesIntersect(new Vertex(triad.CircumcircleX, triad.CircumcircleY),
-							new Vertex(neigbour.CircumcircleX, neigbour.CircumcircleY),
-							this.points[triad.A], this.points[triad.B]))
+						if (LinesIntersect(edge.Start, edge.End, new Vertex(edge.Neighbour1.CircumcircleX, edge.Neighbour1.CircumcircleY),
+							new Vertex(edge.Neighbour2.CircumcircleX, edge.Neighbour2.CircumcircleY)))
 						{
-							this.gabrielVertices.Add(this.points[triad.A]);
-							this.gabrielVertices.Add(this.points[triad.B]);
-						}
-					}
-					if (triad.Ac > -1 && triad.Ac < triads.Count)
-					{
-						neigbour = this.triads[triad.Ac];
-						if (LinesIntersect(new Vertex(triad.CircumcircleX, triad.CircumcircleY),
-							new Vertex(neigbour.CircumcircleX, neigbour.CircumcircleY),
-							this.points[triad.A], this.points[triad.C]))
-						{
-							{
-								this.gabrielVertices.Add(this.points[triad.A]);
-								this.gabrielVertices.Add(this.points[triad.C]);
-							}
-						}
-					}
-					if (triad.Bc > -1 && triad.Bc < triads.Count)
-					{
-						neigbour = this.triads[triad.Bc];
-						if (LinesIntersect(new Vertex(triad.CircumcircleX, triad.CircumcircleY),
-							new Vertex(neigbour.CircumcircleX, neigbour.CircumcircleY),
-							this.points[triad.B], this.points[triad.C]))
-						{
-							this.gabrielVertices.Add(this.points[triad.B]);
-							this.gabrielVertices.Add(this.points[triad.C]);
+							this.gabrielVertices.Add(edge.Start);
+							this.gabrielVertices.Add(edge.End);
+							this.gabrielEdges.Add(edge);
 						}
 					}
 				}
-			}
-			foreach (var vertex in this.gabrielVertices)
-			{
-				yield return vertex;
 			}
 		}
 
@@ -184,6 +192,17 @@ namespace Gabriel_Graph
 			polygon.Stroke = new SolidColorBrush(triangleStrokeColor);
 			Panel.SetZIndex(polygon, TriangleZIndex);
 			return polygon;
+		}
+
+		public Path CreateEdgeLine(DelaunayEdge edge)
+		{
+			LineGeometry geometry = new LineGeometry(new Point(edge.Start.X, edge.Start.Y), new Point(edge.End.X, edge.End.Y));
+			geometry.Freeze();
+			Path path = new Path();
+			path.Data = geometry;
+			path.StrokeThickness = GabrielEdgeTickness;
+			path.Stroke = new SolidColorBrush(gabrielEdgeColor);
+			return path;
 		}
 	}
 }

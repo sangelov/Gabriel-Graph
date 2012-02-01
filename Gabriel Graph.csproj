@@ -55,7 +55,9 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Core\DelaunayEdge.cs" />
     <Compile Include="Core\DelaunayTriangulation.cs" />
+    <Compile Include="Core\GabrielGraph.cs" />
     <Compile Include="Core\Hull.cs" />
     <Compile Include="Core\HullVertex.cs" />
     <Compile Include="Core\Input.cs" />

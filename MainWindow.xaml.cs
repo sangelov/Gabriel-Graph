@@ -36,11 +36,17 @@ namespace Gabriel_Graph
 			}
 		}
 
-		private void DrawGabrielGraphVertices()
+		private void DrawGabrielGraph()
 		{
-			foreach (var vertex in delaunay.GetGabrielVertices())
+			GabrielGraph graph = delaunay.BuildGabrielGraph();
+			foreach (var vertex in graph.Vertices)
 			{
 				Path path = delaunay.CreateGabrielVertexPoint(vertex);
+				this.Plane.Children.Add(path);
+			}
+			foreach (var edge in graph.Edges)
+			{
+				Path path = delaunay.CreateEdgeLine(edge);
 				this.Plane.Children.Add(path);
 			}
 		}
@@ -113,7 +119,7 @@ namespace Gabriel_Graph
 
 		private void BuildGabrielGraphClick(object sender, RoutedEventArgs e)
 		{
-			DrawGabrielGraphVertices();
+			DrawGabrielGraph();
 		}
 	}
 }
