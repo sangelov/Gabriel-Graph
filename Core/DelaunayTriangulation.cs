@@ -29,6 +29,11 @@ namespace Gabriel_Graph
 		private Dictionary<Polygon, Triad> triangles;
 		private Dictionary<Polygon, Path> circles;
 
+		private Dictionary<DelaunayEdge, Path> gabrielEdgesPaths;
+		private Dictionary<Vertex, Path> gabrielVerticesPaths;
+
+		private Dictionary<DelaunayEdge, Path> gabrielMinimumSpanningTreePaths;
+
 		private HashSet<Vertex> gabrielVertices;
 		private HashSet<DelaunayEdge> delaunayEdges;
 
@@ -78,15 +83,19 @@ namespace Gabriel_Graph
 
 		public Path CreateGabrielVertexPoint(Vertex vertex)
 		{
-			EllipseGeometry geometry = new EllipseGeometry();
-			geometry.Center = new Point(vertex.X, vertex.Y);
-			geometry.RadiusX = geometry.RadiusY = GabrielVertexRadius;
-			geometry.Freeze();
-			Path path = new Path();
-			path.StrokeThickness = GabrielVertexTickness;
-			path.Stroke = new SolidColorBrush(gabrielVertexColor);
-			path.Data = geometry;
-			return path;
+			if (!this.gabrielVerticesPaths.ContainsKey(vertex))
+			{
+				EllipseGeometry geometry = new EllipseGeometry();
+				geometry.Center = new Point(vertex.X, vertex.Y);
+				geometry.RadiusX = geometry.RadiusY = GabrielVertexRadius;
+				geometry.Freeze();
+				Path path = new Path();
+				path.StrokeThickness = GabrielVertexTickness;
+				path.Stroke = new SolidColorBrush(gabrielVertexColor);
+				path.Data = geometry;
+				this.gabrielVerticesPaths[vertex] = path;
+			}
+			return this.gabrielVerticesPaths[vertex];
 		}
 
 		public Path GetCircumCircle(Polygon polygon)
@@ -112,6 +121,9 @@ namespace Gabriel_Graph
 		{
 			if (gabrielGraph == null)
 			{
+				this.gabrielEdgesPaths = new Dictionary<DelaunayEdge, Path>();
+				this.gabrielVerticesPaths = new Dictionary<Vertex, Path>();
+				this.gabrielMinimumSpanningTreePaths = new Dictionary<DelaunayEdge, Path>();
 				BuildGabrielGraph1();
 				gabrielGraph = new GabrielGraph()
 				{
@@ -224,24 +236,32 @@ namespace Gabriel_Graph
 
 		public Path CreateEdgeLine(DelaunayEdge edge)
 		{
-			LineGeometry geometry = new LineGeometry(new Point(edge.Start.X, edge.Start.Y), new Point(edge.End.X, edge.End.Y));
-			geometry.Freeze();
-			Path path = new Path();
-			path.Data = geometry;
-			path.StrokeThickness = GabrielEdgeTickness;
-			path.Stroke = new SolidColorBrush(gabrielEdgeColor);
-			return path;
+			if (!this.gabrielEdgesPaths.ContainsKey(edge))
+			{
+				LineGeometry geometry = new LineGeometry(new Point(edge.Start.X, edge.Start.Y), new Point(edge.End.X, edge.End.Y));
+				geometry.Freeze();
+				Path path = new Path();
+				path.Data = geometry;
+				path.StrokeThickness = GabrielEdgeTickness;
+				path.Stroke = new SolidColorBrush(gabrielEdgeColor);
+				this.gabrielEdgesPaths[edge] = path;
+			}
+			return this.gabrielEdgesPaths[edge];
 		}
 
 		public Path CreateLineForMinSpanningTreeEdge(DelaunayEdge edge)
 		{
-			LineGeometry geometry = new LineGeometry(new Point(edge.Start.X, edge.Start.Y), new Point(edge.End.X, edge.End.Y));
-			geometry.Freeze();
-			Path path = new Path();
-			path.Data = geometry;
-			path.StrokeThickness = MinimumSpanningTreeTickness;
-			path.Stroke = new SolidColorBrush(Color.FromArgb(120, minimumSpanningTreeEdgeColor.A, minimumSpanningTreeEdgeColor.G, minimumSpanningTreeEdgeColor.B));
-			return path;
+			if (!this.gabrielMinimumSpanningTreePaths.ContainsKey(edge))
+			{
+				LineGeometry geometry = new LineGeometry(new Point(edge.Start.X, edge.Start.Y), new Point(edge.End.X, edge.End.Y));
+				geometry.Freeze();
+				Path path = new Path();
+				path.Data = geometry;
+				path.StrokeThickness = MinimumSpanningTreeTickness;
+				path.Stroke = new SolidColorBrush(Color.FromArgb(120, minimumSpanningTreeEdgeColor.A, minimumSpanningTreeEdgeColor.G, minimumSpanningTreeEdgeColor.B));
+				this.gabrielMinimumSpanningTreePaths[edge] = path;
+			}
+			return this.gabrielMinimumSpanningTreePaths[edge];
 		}
 	}
 }

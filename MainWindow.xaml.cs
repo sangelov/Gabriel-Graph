@@ -51,7 +51,22 @@ namespace Gabriel_Graph
 			}
 		}
 
-		private void DrawMinimumSpanningTree()
+		private void ClearGabrielGraph()
+		{
+			GabrielGraph graph = delaunay.BuildGabrielGraph();
+			foreach (var vertex in graph.Vertices)
+			{
+				Path path = delaunay.CreateGabrielVertexPoint(vertex);
+				this.Plane.Children.Remove(path);
+			}
+			foreach (var edge in graph.Edges)
+			{
+				Path path = delaunay.CreateEdgeLine(edge);
+				this.Plane.Children.Remove(path);
+			}
+		}
+
+		private void DrawGabrielMinimumSpanningTree()
 		{
 			GabrielGraph graph = delaunay.BuildGabrielGraph();
 			var minimumSpanningTree = graph.GetMinimumSpanningTree();
@@ -59,6 +74,17 @@ namespace Gabriel_Graph
 			{
 				var path = delaunay.CreateLineForMinSpanningTreeEdge(edge);
 				this.Plane.Children.Add(path);
+			}
+		}
+
+		private void ClearGabrielMinimumSpanningTree()
+		{
+			GabrielGraph graph = delaunay.BuildGabrielGraph();
+			var minimumSpanningTree = graph.GetMinimumSpanningTree();
+			foreach (var edge in minimumSpanningTree.Edges)
+			{
+				var path = delaunay.CreateLineForMinSpanningTreeEdge(edge);
+				this.Plane.Children.Remove(path);
 			}
 		}
 
@@ -130,12 +156,34 @@ namespace Gabriel_Graph
 
 		private void BuildGabrielGraphClick(object sender, RoutedEventArgs e)
 		{
-			DrawGabrielGraph();
+			ToggleButton button = sender as ToggleButton;
+			if (button != null)
+			{
+				if (button.IsChecked.HasValue && button.IsChecked.Value)
+				{
+					DrawGabrielGraph();
+				}
+				else
+				{
+					ClearGabrielGraph();
+				}
+			}
 		}
 
 		private void BuildMinimumSpanningTreeClick(object sender, RoutedEventArgs e)
 		{
-			DrawMinimumSpanningTree();
+			ToggleButton button = sender as ToggleButton;
+			if (button != null)
+			{
+				if (button.IsChecked.HasValue && button.IsChecked.Value)
+				{
+					DrawGabrielMinimumSpanningTree();
+				}
+				else
+				{
+					ClearGabrielMinimumSpanningTree();
+				}
+			}
 		}
 	}
 }
