@@ -73,7 +73,7 @@ namespace DelaunayTriangulator
 			float romin2 = float.MaxValue, circumCentreX = 0, circumCentreY = 0;
 
 			// Find the point which, with the first two points, creates the triangle with the smallest circumcircle
-			Triad tri = new Triad(sortedIndices[0], sortedIndices[1], 2);
+			Triad tri = new Triad(sortedIndices[0], sortedIndices[1], 2, points);
 			for (int kc = 2; kc < nump; kc++)
 			{
 				tri.C = sortedIndices[kc];
@@ -279,7 +279,7 @@ namespace DelaunayTriangulator
 
 				for (int p = 0; p < npx; p++)
 				{
-					Triad trx = new Triad(a, pidx[p], pidx[p + 1]);
+					Triad trx = new Triad(a, pidx[p], pidx[p + 1], points);
 					trx.FindCircumcirclePrecisely(points);
 
 					trx.Bc = tridx[p];

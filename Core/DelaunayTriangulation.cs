@@ -32,7 +32,7 @@ namespace Gabriel_Graph
 		private HashSet<Vertex> gabrielVertices;
 		private HashSet<DelaunayEdge> delaunayEdges;
 
-		private const int GabrielVertexRadius = 3;
+		private const int GabrielVertexRadius = 5;
 		private const int GabrielVertexTickness = 2;
 		private static readonly Color gabrielVertexColor = Colors.Red;
 
@@ -148,7 +148,30 @@ namespace Gabriel_Graph
 
 				foreach (var edge in this.GetDelaunayEdges())
 				{
-					if (edge.Neighbour2 != null)
+					if (edge.Neighbour2 == null)
+					{
+						Vertex nonEdgedVertex;
+						if (edge.Neighbour1.VertexA != edge.Start && edge.Neighbour1.VertexA != edge.End)
+						{
+							nonEdgedVertex = edge.Neighbour1.VertexA;
+						}
+						else if (edge.Neighbour1.VertexB != edge.Start && edge.Neighbour1.VertexB != edge.End)
+						{
+							nonEdgedVertex = edge.Neighbour1.VertexB;
+						}
+						else
+						{
+							nonEdgedVertex = edge.Neighbour1.VertexC;
+						}
+						
+						if (LinesIntersect(edge.Start, edge.End, new Vertex(edge.Neighbour1.CircumcircleX, edge.Neighbour1.CircumcircleY), nonEdgedVertex))
+						{
+							this.gabrielVertices.Add(edge.Start);
+							this.gabrielVertices.Add(edge.End);
+							this.gabrielEdges.Add(edge);
+						}
+					}
+					else
 					{
 						if (LinesIntersect(edge.Start, edge.End, new Vertex(edge.Neighbour1.CircumcircleX, edge.Neighbour1.CircumcircleY),
 							new Vertex(edge.Neighbour2.CircumcircleX, edge.Neighbour2.CircumcircleY)))
@@ -158,6 +181,7 @@ namespace Gabriel_Graph
 							this.gabrielEdges.Add(edge);
 						}
 					}
+
 				}
 			}
 		}

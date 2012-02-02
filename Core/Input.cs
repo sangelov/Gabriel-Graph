@@ -7,7 +7,7 @@ namespace S_hull
 {
 	internal static class Input
 	{
-		private const int numberOfPoints = 40;
+		private const int numberOfPoints = 20;
 		private const int maxCoordinate = 699;
 
 		public static List<Vertex> Points
