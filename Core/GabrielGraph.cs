@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Shapes;
 using DelaunayTriangulator;
 
 namespace Gabriel_Graph
@@ -8,62 +11,91 @@ namespace Gabriel_Graph
 	public class GabrielGraph
 	{
 		private SpanningTree minimumSpanningTree;
+		private Dictionary<DelaunayEdge, Path> edgesPaths;
+		private Dictionary<Vertex, Path> verticesPaths;
+		private Dictionary<DelaunayEdge, Path> minimumSpanningTreePaths;
+
+		private const int VertexRadius = 5;
+		private const int VertexTickness = 2;
+		private const int EdgeTickness = 2;
+		private static readonly Color VertexColor = Colors.Red;
+		private static readonly Color EdgeColor = Colors.Blue;
+
+		private const int MinimumSpanningTreeTickness = 4;
+		private static readonly Color minimumSpanningTreeEdgeColor = Colors.Red;
 
 		public List<Vertex> Vertices { get; set; }
 		public List<DelaunayEdge> Edges { get; set; }
 
 		public SpanningTree GetMinimumSpanningTree()
 		{
-			if (minimumSpanningTree == null)
+			if (this.minimumSpanningTree == null)
 			{
-				Dictionary<Vertex, int> vertexIndex = new Dictionary<Vertex, int>();
-				
-				int i = 0;
-				foreach (var v in Vertices)
-				{
-					vertexIndex[v] = i++;
-				}
-
-				List<DelaunayEdge> mstEdges = new List<DelaunayEdge>();
-				var sortedEdges = this.Edges.Quicksort();
-
-				int[] parents = new int[this.Vertices.Count];
-				for (int j = 0; j < this.Vertices.Count; j++)
-				{
-					parents[j] = -1;
-				}
-
-				foreach (var edge in sortedEdges)
-				{
-					var startRoot = GetRootVertexIndex(parents, vertexIndex[edge.Start]);
-					var endRoot = GetRootVertexIndex(parents, vertexIndex[edge.End]);
-					if (startRoot != endRoot)
-					{
-						mstEdges.Add(edge);
-						parents[endRoot] = startRoot;
-					}
-					if (mstEdges.Count == this.Vertices.Count - 1)
-					{
-						break;
-					}
-				}
-				
-				minimumSpanningTree = new SpanningTree()
-				{
-					Edges = mstEdges
-				};
+				this.minimumSpanningTree = SpanningTree.Create(this.Vertices, this.Edges);
 			}
-			return minimumSpanningTree;
+			return this.minimumSpanningTree;
 		}
 
-		private int GetRootVertexIndex(int[] roots, int vertexIndex)
+		public Path CreateEdgeLine(DelaunayEdge edge)
 		{
-			int current = vertexIndex;
-			while (roots[current] != -1)
+			if (this.edgesPaths == null)
 			{
-				current = roots[current];
+				this.edgesPaths = new Dictionary<DelaunayEdge, Path>();
 			}
-			return current;
+
+			if (!this.edgesPaths.ContainsKey(edge))
+			{
+				LineGeometry geometry = new LineGeometry(new Point(edge.Start.X, edge.Start.Y), new Point(edge.End.X, edge.End.Y));
+				geometry.Freeze();
+				Path path = new Path();
+				path.Data = geometry;
+				path.StrokeThickness = EdgeTickness;
+				path.Stroke = new SolidColorBrush(EdgeColor);
+				this.edgesPaths[edge] = path;
+			}
+			return this.edgesPaths[edge];
+		}
+
+		public Path CreateVertexPoint(Vertex vertex)
+		{
+			if (this.verticesPaths == null)
+			{
+				this.verticesPaths = new Dictionary<Vertex, Path>();
+			}
+
+			if (!this.verticesPaths.ContainsKey(vertex))
+			{
+				EllipseGeometry geometry = new EllipseGeometry();
+				geometry.Center = new Point(vertex.X, vertex.Y);
+				geometry.RadiusX = geometry.RadiusY = VertexRadius;
+				geometry.Freeze();
+				Path path = new Path();
+				path.StrokeThickness = VertexTickness;
+				path.Stroke = new SolidColorBrush(VertexColor);
+				path.Data = geometry;
+				this.verticesPaths[vertex] = path;
+			}
+			return this.verticesPaths[vertex];
+		}
+
+		public Path CreateLineForMinSpanningTreeEdge(DelaunayEdge edge)
+		{
+			if (this.minimumSpanningTreePaths == null)
+			{
+				this.minimumSpanningTreePaths = new Dictionary<DelaunayEdge, Path>();
+			}
+
+			if (!this.minimumSpanningTreePaths.ContainsKey(edge))
+			{
+				LineGeometry geometry = new LineGeometry(new Point(edge.Start.X, edge.Start.Y), new Point(edge.End.X, edge.End.Y));
+				geometry.Freeze();
+				Path path = new Path();
+				path.Data = geometry;
+				path.StrokeThickness = MinimumSpanningTreeTickness;
+				path.Stroke = new SolidColorBrush(Color.FromArgb(120, minimumSpanningTreeEdgeColor.A, minimumSpanningTreeEdgeColor.G, minimumSpanningTreeEdgeColor.B));
+				this.minimumSpanningTreePaths[edge] = path;
+			}
+			return this.minimumSpanningTreePaths[edge];
 		}
 	}
 }

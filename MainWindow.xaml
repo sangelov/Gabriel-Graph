@@ -7,8 +7,9 @@
 		<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 			<Button Content="Generate" Click="GenerateClick" Margin="5"/>
 			<ToggleButton Name="ColorTrianglesButton" Content="Color Triangles" Click="ToggleButton_Click" Margin="5"/>
-            <ToggleButton Content="Build Gabriel Graph" Click="BuildGabrielGraphClick" Margin="5"/>
             <ToggleButton Content="Build Minimum Spanning Tree" Click="BuildMinimumSpanningTreeClick" Margin="5"/>
+            <ToggleButton Content="Build Gabriel Graph" Click="BuildGabrielGraphClick" Margin="5"/>
+            <ToggleButton Content="Build Gabriel Minimum Spanning Tree" Click="BuildGabrielMinimumSpanningTreeClick" Margin="5"/>
 		</StackPanel>
 	</StackPanel>
 </Window>

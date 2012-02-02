@@ -19,33 +19,20 @@ namespace Gabriel_Graph
 		private const int CircleStrokeTickness = 3;
 		private static readonly Color circleStrokeColor = Colors.Black;
 
-		private const int GabrielEdgeTickness = 2;
-		private static readonly Color gabrielEdgeColor = Colors.Blue;
-
 		private List<Vertex> points;
 		private List<Triad> triads;
 
 		private Dictionary<Triad, Polygon> triadsDict;
 		private Dictionary<Polygon, Triad> triangles;
 		private Dictionary<Polygon, Path> circles;
+		private Dictionary<DelaunayEdge, Path> minimumSpanningTreePaths;
 
-		private Dictionary<DelaunayEdge, Path> gabrielEdgesPaths;
-		private Dictionary<Vertex, Path> gabrielVerticesPaths;
-
-		private Dictionary<DelaunayEdge, Path> gabrielMinimumSpanningTreePaths;
-
-		private HashSet<Vertex> gabrielVertices;
 		private HashSet<DelaunayEdge> delaunayEdges;
-
-		private const int GabrielVertexRadius = 5;
-		private const int GabrielVertexTickness = 2;
-		private static readonly Color gabrielVertexColor = Colors.Red;
+		private GabrielGraph gabrielGraph;
+		private SpanningTree minimumSpanningTree;
 
 		private const int MinimumSpanningTreeTickness = 4;
 		private static readonly Color minimumSpanningTreeEdgeColor = Colors.Red;
-
-		private GabrielGraph gabrielGraph;
-		private HashSet<DelaunayEdge> gabrielEdges;
 
 		private DelaunayTriangulation()
 		{
@@ -81,21 +68,13 @@ namespace Gabriel_Graph
 			}
 		}
 
-		public Path CreateGabrielVertexPoint(Vertex vertex)
+		public SpanningTree GetMinimumSpanningTree()
 		{
-			if (!this.gabrielVerticesPaths.ContainsKey(vertex))
+			if (this.minimumSpanningTree == null)
 			{
-				EllipseGeometry geometry = new EllipseGeometry();
-				geometry.Center = new Point(vertex.X, vertex.Y);
-				geometry.RadiusX = geometry.RadiusY = GabrielVertexRadius;
-				geometry.Freeze();
-				Path path = new Path();
-				path.StrokeThickness = GabrielVertexTickness;
-				path.Stroke = new SolidColorBrush(gabrielVertexColor);
-				path.Data = geometry;
-				this.gabrielVerticesPaths[vertex] = path;
+				this.minimumSpanningTree = SpanningTree.Create(this.points, new List<DelaunayEdge>(GetDelaunayEdges()));
 			}
-			return this.gabrielVerticesPaths[vertex];
+			return this.minimumSpanningTree;
 		}
 
 		public Path GetCircumCircle(Polygon polygon)
@@ -117,18 +96,38 @@ namespace Gabriel_Graph
 			return circles[polygon];
 		}
 
+		public Path CreateLineForMinSpanningTreeEdge(DelaunayEdge edge)
+		{
+			if (this.minimumSpanningTreePaths == null)
+			{
+				this.minimumSpanningTreePaths = new Dictionary<DelaunayEdge, Path>();
+			}
+
+			if (!this.minimumSpanningTreePaths.ContainsKey(edge))
+			{
+				LineGeometry geometry = new LineGeometry(new Point(edge.Start.X, edge.Start.Y), new Point(edge.End.X, edge.End.Y));
+				geometry.Freeze();
+				Path path = new Path();
+				path.Data = geometry;
+				path.StrokeThickness = MinimumSpanningTreeTickness;
+				path.Stroke = new SolidColorBrush(Color.FromArgb(120, minimumSpanningTreeEdgeColor.A, minimumSpanningTreeEdgeColor.G, minimumSpanningTreeEdgeColor.B));
+				this.minimumSpanningTreePaths[edge] = path;
+			}
+			return this.minimumSpanningTreePaths[edge];
+		}
+
 		public GabrielGraph BuildGabrielGraph()
 		{
 			if (gabrielGraph == null)
 			{
-				this.gabrielEdgesPaths = new Dictionary<DelaunayEdge, Path>();
-				this.gabrielVerticesPaths = new Dictionary<Vertex, Path>();
-				this.gabrielMinimumSpanningTreePaths = new Dictionary<DelaunayEdge, Path>();
-				BuildGabrielGraph1();
+				HashSet<Vertex> gabrielVertices = new HashSet<Vertex>();
+				HashSet<DelaunayEdge> gabrielEdges = new HashSet<DelaunayEdge>();
+
+				BuildGabrielGraph(gabrielVertices, gabrielEdges);
 				gabrielGraph = new GabrielGraph()
 				{
-					Vertices = new List<Vertex>(this.gabrielVertices),
-					Edges = new List<DelaunayEdge>(this.gabrielEdges)
+					Vertices = new List<Vertex>(gabrielVertices),
+					Edges = new List<DelaunayEdge>(gabrielEdges)
 				};
 			}
 			return gabrielGraph;
@@ -151,49 +150,42 @@ namespace Gabriel_Graph
 			return this.delaunayEdges;
 		}
 
-		private void BuildGabrielGraph1()
+		private void BuildGabrielGraph(HashSet<Vertex> gabrielVertices, HashSet<DelaunayEdge> gabrielEdges)
 		{
-			if (this.gabrielVertices == null && this.gabrielEdges == null)
+			foreach (var edge in this.GetDelaunayEdges())
 			{
-				this.gabrielVertices = new HashSet<Vertex>();
-				this.gabrielEdges = new HashSet<DelaunayEdge>();
-
-				foreach (var edge in this.GetDelaunayEdges())
+				if (edge.Neighbour2 == null)
 				{
-					if (edge.Neighbour2 == null)
+					Vertex nonEdgedVertex;
+					if (edge.Neighbour1.VertexA != edge.Start && edge.Neighbour1.VertexA != edge.End)
 					{
-						Vertex nonEdgedVertex;
-						if (edge.Neighbour1.VertexA != edge.Start && edge.Neighbour1.VertexA != edge.End)
-						{
-							nonEdgedVertex = edge.Neighbour1.VertexA;
-						}
-						else if (edge.Neighbour1.VertexB != edge.Start && edge.Neighbour1.VertexB != edge.End)
-						{
-							nonEdgedVertex = edge.Neighbour1.VertexB;
-						}
-						else
-						{
-							nonEdgedVertex = edge.Neighbour1.VertexC;
-						}
-						
-						if (LinesIntersect(edge.Start, edge.End, new Vertex(edge.Neighbour1.CircumcircleX, edge.Neighbour1.CircumcircleY), nonEdgedVertex))
-						{
-							this.gabrielVertices.Add(edge.Start);
-							this.gabrielVertices.Add(edge.End);
-							this.gabrielEdges.Add(edge);
-						}
+						nonEdgedVertex = edge.Neighbour1.VertexA;
+					}
+					else if (edge.Neighbour1.VertexB != edge.Start && edge.Neighbour1.VertexB != edge.End)
+					{
+						nonEdgedVertex = edge.Neighbour1.VertexB;
 					}
 					else
 					{
-						if (LinesIntersect(edge.Start, edge.End, new Vertex(edge.Neighbour1.CircumcircleX, edge.Neighbour1.CircumcircleY),
-							new Vertex(edge.Neighbour2.CircumcircleX, edge.Neighbour2.CircumcircleY)))
-						{
-							this.gabrielVertices.Add(edge.Start);
-							this.gabrielVertices.Add(edge.End);
-							this.gabrielEdges.Add(edge);
-						}
+						nonEdgedVertex = edge.Neighbour1.VertexC;
 					}
 
+					if (!LinesIntersect(edge.Start, edge.End, new Vertex(edge.Neighbour1.CircumcircleX, edge.Neighbour1.CircumcircleY), nonEdgedVertex))
+					{
+						gabrielVertices.Add(edge.Start);
+						gabrielVertices.Add(edge.End);
+						gabrielEdges.Add(edge);
+					}
+				}
+				else
+				{
+					if (LinesIntersect(edge.Start, edge.End, new Vertex(edge.Neighbour1.CircumcircleX, edge.Neighbour1.CircumcircleY),
+						new Vertex(edge.Neighbour2.CircumcircleX, edge.Neighbour2.CircumcircleY)))
+					{
+						gabrielVertices.Add(edge.Start);
+						gabrielVertices.Add(edge.End);
+						gabrielEdges.Add(edge);
+					}
 				}
 			}
 		}
@@ -232,36 +224,6 @@ namespace Gabriel_Graph
 			polygon.Stroke = new SolidColorBrush(triangleStrokeColor);
 			Panel.SetZIndex(polygon, TriangleZIndex);
 			return polygon;
-		}
-
-		public Path CreateEdgeLine(DelaunayEdge edge)
-		{
-			if (!this.gabrielEdgesPaths.ContainsKey(edge))
-			{
-				LineGeometry geometry = new LineGeometry(new Point(edge.Start.X, edge.Start.Y), new Point(edge.End.X, edge.End.Y));
-				geometry.Freeze();
-				Path path = new Path();
-				path.Data = geometry;
-				path.StrokeThickness = GabrielEdgeTickness;
-				path.Stroke = new SolidColorBrush(gabrielEdgeColor);
-				this.gabrielEdgesPaths[edge] = path;
-			}
-			return this.gabrielEdgesPaths[edge];
-		}
-
-		public Path CreateLineForMinSpanningTreeEdge(DelaunayEdge edge)
-		{
-			if (!this.gabrielMinimumSpanningTreePaths.ContainsKey(edge))
-			{
-				LineGeometry geometry = new LineGeometry(new Point(edge.Start.X, edge.Start.Y), new Point(edge.End.X, edge.End.Y));
-				geometry.Freeze();
-				Path path = new Path();
-				path.Data = geometry;
-				path.StrokeThickness = MinimumSpanningTreeTickness;
-				path.Stroke = new SolidColorBrush(Color.FromArgb(120, minimumSpanningTreeEdgeColor.A, minimumSpanningTreeEdgeColor.G, minimumSpanningTreeEdgeColor.B));
-				this.gabrielMinimumSpanningTreePaths[edge] = path;
-			}
-			return this.gabrielMinimumSpanningTreePaths[edge];
 		}
 	}
 }

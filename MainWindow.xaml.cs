@@ -41,12 +41,12 @@ namespace Gabriel_Graph
 			GabrielGraph graph = delaunay.BuildGabrielGraph();
 			foreach (var vertex in graph.Vertices)
 			{
-				Path path = delaunay.CreateGabrielVertexPoint(vertex);
+				Path path = graph.CreateVertexPoint(vertex);
 				this.Plane.Children.Add(path);
 			}
 			foreach (var edge in graph.Edges)
 			{
-				Path path = delaunay.CreateEdgeLine(edge);
+				Path path = graph.CreateEdgeLine(edge);
 				this.Plane.Children.Add(path);
 			}
 		}
@@ -56,12 +56,12 @@ namespace Gabriel_Graph
 			GabrielGraph graph = delaunay.BuildGabrielGraph();
 			foreach (var vertex in graph.Vertices)
 			{
-				Path path = delaunay.CreateGabrielVertexPoint(vertex);
+				Path path = graph.CreateVertexPoint(vertex);
 				this.Plane.Children.Remove(path);
 			}
 			foreach (var edge in graph.Edges)
 			{
-				Path path = delaunay.CreateEdgeLine(edge);
+				Path path = graph.CreateEdgeLine(edge);
 				this.Plane.Children.Remove(path);
 			}
 		}
@@ -72,7 +72,7 @@ namespace Gabriel_Graph
 			var minimumSpanningTree = graph.GetMinimumSpanningTree();
 			foreach (var edge in minimumSpanningTree.Edges)
 			{
-				var path = delaunay.CreateLineForMinSpanningTreeEdge(edge);
+				var path = graph.CreateLineForMinSpanningTreeEdge(edge);
 				this.Plane.Children.Add(path);
 			}
 		}
@@ -81,6 +81,26 @@ namespace Gabriel_Graph
 		{
 			GabrielGraph graph = delaunay.BuildGabrielGraph();
 			var minimumSpanningTree = graph.GetMinimumSpanningTree();
+			foreach (var edge in minimumSpanningTree.Edges)
+			{
+				var path = graph.CreateLineForMinSpanningTreeEdge(edge);
+				this.Plane.Children.Remove(path);
+			}
+		}
+
+		private void DrawMinimumSpanningTree()
+		{
+			var minimumSpanningTree = delaunay.GetMinimumSpanningTree();
+			foreach (var edge in minimumSpanningTree.Edges)
+			{
+				var path = delaunay.CreateLineForMinSpanningTreeEdge(edge);
+				this.Plane.Children.Add(path);
+			}
+		}
+
+		private void ClearMinimumSpanningTree()
+		{
+			var minimumSpanningTree = delaunay.GetMinimumSpanningTree();
 			foreach (var edge in minimumSpanningTree.Edges)
 			{
 				var path = delaunay.CreateLineForMinSpanningTreeEdge(edge);
@@ -170,7 +190,7 @@ namespace Gabriel_Graph
 			}
 		}
 
-		private void BuildMinimumSpanningTreeClick(object sender, RoutedEventArgs e)
+		private void BuildGabrielMinimumSpanningTreeClick(object sender, RoutedEventArgs e)
 		{
 			ToggleButton button = sender as ToggleButton;
 			if (button != null)
@@ -182,6 +202,22 @@ namespace Gabriel_Graph
 				else
 				{
 					ClearGabrielMinimumSpanningTree();
+				}
+			}
+		}
+
+		private void BuildMinimumSpanningTreeClick(object sender, RoutedEventArgs e)
+		{
+			ToggleButton button = sender as ToggleButton;
+			if (button != null)
+			{
+				if (button.IsChecked.HasValue && button.IsChecked.Value)
+				{
+					DrawMinimumSpanningTree();
+				}
+				else
+				{
+					ClearMinimumSpanningTree();
 				}
 			}
 		}
