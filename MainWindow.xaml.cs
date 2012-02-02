@@ -51,6 +51,17 @@ namespace Gabriel_Graph
 			}
 		}
 
+		private void DrawMinimumSpanningTree()
+		{
+			GabrielGraph graph = delaunay.BuildGabrielGraph();
+			var minimumSpanningTree = graph.GetMinimumSpanningTree();
+			foreach (var edge in minimumSpanningTree.Edges)
+			{
+				var path = delaunay.CreateLineForMinSpanningTreeEdge(edge);
+				this.Plane.Children.Add(path);
+			}
+		}
+
 		private void FillTriangles()
 		{
 			Random rand = new Random();
@@ -120,6 +131,11 @@ namespace Gabriel_Graph
 		private void BuildGabrielGraphClick(object sender, RoutedEventArgs e)
 		{
 			DrawGabrielGraph();
+		}
+
+		private void BuildMinimumSpanningTreeClick(object sender, RoutedEventArgs e)
+		{
+			DrawMinimumSpanningTree();
 		}
 	}
 }

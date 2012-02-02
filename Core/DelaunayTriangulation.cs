@@ -20,7 +20,7 @@ namespace Gabriel_Graph
 		private static readonly Color circleStrokeColor = Colors.Black;
 
 		private const int GabrielEdgeTickness = 2;
-		private static readonly Color gabrielEdgeColor = Colors.Red;
+		private static readonly Color gabrielEdgeColor = Colors.Blue;
 
 		private List<Vertex> points;
 		private List<Triad> triads;
@@ -32,9 +32,13 @@ namespace Gabriel_Graph
 		private HashSet<Vertex> gabrielVertices;
 		private HashSet<DelaunayEdge> delaunayEdges;
 
-		private const double GabrielVertexRadius = 3;
-		private const double GabrielVertexTickness = 2;
+		private const int GabrielVertexRadius = 3;
+		private const int GabrielVertexTickness = 2;
 		private static readonly Color gabrielVertexColor = Colors.Red;
+
+		private const int MinimumSpanningTreeTickness = 4;
+		private static readonly Color minimumSpanningTreeEdgeColor = Colors.Red;
+
 		private GabrielGraph gabrielGraph;
 		private HashSet<DelaunayEdge> gabrielEdges;
 
@@ -111,8 +115,8 @@ namespace Gabriel_Graph
 				BuildGabrielGraph1();
 				gabrielGraph = new GabrielGraph()
 				{
-					Vertices = this.gabrielVertices,
-					Edges = this.gabrielEdges
+					Vertices = new List<Vertex>(this.gabrielVertices),
+					Edges = new List<DelaunayEdge>(this.gabrielEdges)
 				};
 			}
 			return gabrielGraph;
@@ -202,6 +206,17 @@ namespace Gabriel_Graph
 			path.Data = geometry;
 			path.StrokeThickness = GabrielEdgeTickness;
 			path.Stroke = new SolidColorBrush(gabrielEdgeColor);
+			return path;
+		}
+
+		public Path CreateLineForMinSpanningTreeEdge(DelaunayEdge edge)
+		{
+			LineGeometry geometry = new LineGeometry(new Point(edge.Start.X, edge.Start.Y), new Point(edge.End.X, edge.End.Y));
+			geometry.Freeze();
+			Path path = new Path();
+			path.Data = geometry;
+			path.StrokeThickness = MinimumSpanningTreeTickness;
+			path.Stroke = new SolidColorBrush(Color.FromArgb(120, minimumSpanningTreeEdgeColor.A, minimumSpanningTreeEdgeColor.G, minimumSpanningTreeEdgeColor.B));
 			return path;
 		}
 	}

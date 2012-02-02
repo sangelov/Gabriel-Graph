@@ -6,10 +6,11 @@ using DelaunayTriangulator;
 
 namespace Gabriel_Graph
 {
-	public class DelaunayEdge
+	public class DelaunayEdge : IComparable<DelaunayEdge>
 	{
 		private List<Triad> triads;
 		private List<Vertex> points;
+		private float? length;
 		private int start;
 		private int end;
 		private int neighbour1;
@@ -39,6 +40,35 @@ namespace Gabriel_Graph
 			{
 				this.neighbour1 = neighbour2;
 				this.neighbour2 = neighbour1;
+			}
+		}
+
+		public float Length
+		{
+			get
+			{
+				if (this.length == null)
+				{
+					return this.Start.DistanceTo(this.End);
+				}
+				return this.length.Value;
+			}
+		}
+
+		public int CompareTo(DelaunayEdge other)
+		{
+			float diff = this.Length - other.Length;
+			if (diff < 0)
+			{
+				return -1;
+			}
+			else if (diff > 0)
+			{
+				return 1;
+			}
+			else
+			{
+				return 0;
 			}
 		}
 

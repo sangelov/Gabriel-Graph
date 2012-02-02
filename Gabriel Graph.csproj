@@ -60,8 +60,10 @@
     <Compile Include="Core\GabrielGraph.cs" />
     <Compile Include="Core\Hull.cs" />
     <Compile Include="Core\HullVertex.cs" />
+    <Compile Include="Core\IEnumerableExtensions.cs" />
     <Compile Include="Core\Input.cs" />
     <Compile Include="Core\Set.cs" />
+    <Compile Include="Core\SpanningTree.cs" />
     <Compile Include="Core\Triad.cs" />
     <Compile Include="Core\Triangulator.cs" />
     <Compile Include="Core\Vertex.cs" />

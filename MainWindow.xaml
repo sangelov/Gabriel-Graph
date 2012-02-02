@@ -8,6 +8,7 @@
 			<Button Content="Generate" Click="GenerateClick" Margin="5"/>
 			<ToggleButton Name="ColorTrianglesButton" Content="Color Triangles" Click="ToggleButton_Click" Margin="5"/>
             <Button Content="Build Gabriel Graph" Click="BuildGabrielGraphClick" Margin="5"/>
+			<Button Content="Build Minimum Spanning Tree" Click="BuildMinimumSpanningTreeClick" Margin="5"/>
 		</StackPanel>
 	</StackPanel>
 </Window>
